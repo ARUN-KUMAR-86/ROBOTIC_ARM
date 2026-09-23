@@ -1,0 +1,3 @@
+# 3D Sensor perception configuration for MoveIt
+sensors:
+  - ""

@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <!-- Auron Robot Colors matching visual design reference:
+       White arm body, Industrial Blue mechanical housings,
+       Cyan accent rings/turbines, Dark Blue accents, Metallic silver -->
+
+  <material name="auron_white">
+    <color rgba="0.95 0.95 0.95 1.0"/>
+  </material>
+
+  <material name="auron_blue">
+    <color rgba="0.00 0.30 0.80 1.0"/>
+  </material>
+
+  <material name="auron_cyan">
+    <color rgba="0.00 0.75 1.00 1.0"/>
+  </material>
+
+  <material name="auron_dark_blue">
+    <color rgba="0.02 0.08 0.18 1.0"/>
+  </material>
+
+  <material name="auron_metal_silver">
+    <color rgba="0.82 0.84 0.86 1.0"/>
+  </material>
+
+  <material name="auron_dark_grey">
+    <color rgba="0.18 0.18 0.20 1.0"/>
+  </material>
+</robot>

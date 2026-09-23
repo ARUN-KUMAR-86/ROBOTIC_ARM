@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auron Robotics | Robotic Arm & Dexterous Hand Command Center</title>
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+
+  <!-- TOP NAVBAR -->
+  <header class="navbar">
+    <div class="nav-brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-title">AURON ROBOTICS</div>
+        <div class="brand-subtitle">6-DOF Industrial Arm & Modern Hand Control</div>
+      </div>
+    </div>
+
+    <div class="nav-center">
+      <div id="connection-status-badge" class="status-badge disconnected">
+        <span class="status-dot"></span>
+        <span id="connection-status-text">INITIALIZING...</span>
+      </div>
+    </div>
+
+    <div class="nav-actions">
+      <button id="btn-reset-home" class="btn btn-outline" title="Return robot arm to 0 rad home position">
+        <span>🔄</span> Reset Home
+      </button>
+      <button id="btn-estop" class="btn btn-estop" title="Emergency Stop - Halts all motion immediately">
+        <span>⚠️</span> E-STOP
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN DASHBOARD CONTENT -->
+  <main class="main-content">
+
+    <!-- LEFT COLUMN: 3D ROBOT VIEWPORT & MOTION PRESETS -->
+    <section class="viewport-column">
+      <div class="viewport-card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🌐</span> Real-Time 3D Kinematic Visualizer
+          </div>
+          <div class="viewport-tools">
+            <button id="tool-toggle-grid" class="tool-btn active" title="Toggle ground grid">Grid</button>
+            <button id="tool-toggle-wireframe" class="tool-btn" title="Toggle wireframe mode">Wireframe</button>
+            <button id="tool-reset-cam" class="tool-btn" title="Reset camera view">Reset Cam</button>
+            <button id="tool-toggle-pip" class="tool-btn active" title="Toggle Live Robot Eye Camera PiP">📷 PiP Cam</button>
+          </div>
+        </div>
+
+        <div id="canvas-container">
+          <!-- Floating Camera Preset Buttons -->
+          <div class="camera-views-bar">
+            <button class="cam-btn active" data-view="iso">ISO</button>
+            <button class="cam-btn" data-view="front">FRONT</button>
+            <button class="cam-btn" data-view="side">SIDE</button>
+            <button class="cam-btn" data-view="top">TOP</button>
+            <button class="cam-btn" data-view="hand" style="color: var(--cyan);">HAND VIEW</button>
+          </div>
+
+          <!-- Floating Live Camera Picture-in-Picture -->
+          <div id="pip-camera-box" class="pip-camera-box" title="Live Robot Eye-in-Hand Camera Stream">
+            <div class="pip-camera-header">
+              <span class="pip-status-dot"></span>
+              <span class="pip-title">LIVE ROBOT EYE</span>
+              <button id="pip-close-btn" class="pip-close-btn" title="Toggle PiP">&times;</button>
+            </div>
+            <img id="pip-camera-img" src="/stream/camera" alt="Live Robot Optical Stream">
+          </div>
+
+          <div class="viewport-overlay-info">
+            MODEL: <span>AURON 6-DOF + BIONIC HAND</span> | ORBIT: <span>DRAG MOUSE</span> | ZOOM: <span>SCROLL</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- MOTION PRESETS -->
+      <div class="presets-card">
+        <div class="card-title" style="font-size: 0.82rem;">
+          <span>⚡</span> Rapid Poses & Motion Presets
+        </div>
+        <div class="presets-grid">
+          <button id="preset-home" class="preset-btn">
+            <span>🏠</span> Home (0°)
+          </button>
+          <button id="preset-ready" class="preset-btn">
+            <span>🎯</span> Standby Ready
+          </button>
+          <button id="preset-pick" class="preset-btn">
+            <span>📦</span> Pick Pose
+          </button>
+          <button id="preset-place" class="preset-btn">
+            <span>📥</span> Place Pose
+          </button>
+          <button id="preset-inspect" class="preset-btn">
+            <span>🔍</span> Inspect Object
+          </button>
+          <button id="preset-high" class="preset-btn">
+            <span>🗼</span> High Reach
+          </button>
+          <button id="preset-wave" class="preset-btn" style="border-color: rgba(0,229,255,0.4); color: var(--cyan);">
+            <span>👋</span> Wave Gesture
+          </button>
+          <button id="hand-btn-open-quick" class="preset-btn" onclick="HandControls.setGripStroke(0.035)">
+            <span>🖐️</span> Open Hand
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT COLUMN: CONTROL PANELS & TABS -->
+    <section class="controls-column">
+      <!-- TABS HEADER -->
+      <nav class="tabs-bar">
+        <button class="tab-btn active" data-tab="tab-joints">
+          <span>🦾</span> Arm Joints
+        </button>
+        <button class="tab-btn" data-tab="tab-hand">
+          <span>🖐️</span> Modern Hand
+        </button>
+        <button class="tab-btn" data-tab="tab-camera">
+          <span>📷</span> Live Camera
+        </button>
+        <button class="tab-btn" data-tab="tab-showcase">
+          <span>✨</span> Hand Showcase
+        </button>
+        <button class="tab-btn" data-tab="tab-telemetry">
+          <span>📊</span> Telemetry
+        </button>
+      </nav>
+
+      <!-- TAB 1: 6-DOF ARM JOINT CONTROLS -->
+      <div id="tab-joints" class="tab-content active">
+        <div class="joints-header-bar">
+          <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary);">6 DEGREES OF FREEDOM</span>
+          <div class="step-size-selector">
+            <span>Step:</span>
+            <button class="step-btn" data-step="1.0">1°</button>
+            <button class="step-btn active" data-step="5.0">5°</button>
+            <button class="step-btn" data-step="10.0">10°</button>
+            <button class="step-btn" data-step="15.0">15°</button>
+          </div>
+        </div>
+
+        <div class="joints-list">
+          <!-- JOINT 1 -->
+          <div class="joint-card">
+            <div class="joint-card-header">
+              <div class="joint-info">
+                <span class="joint-badge">J1</span>
+                <div>
+                  <div class="joint-name">Base Pan</div>
+                  <div class="joint-axis">Rotation around Z-axis (-180° to +180°)</div>
+                </div>
+              </div>
+              <div class="joint-readout">
+                <span id="joint-1-deg" class="deg-val">0.0°</span>
+                <span id="joint-1-rad" class="rad-val">0.00 rad</span>
+              </div>
+            </div>
+            <div class="joint-controls-row">
+              <button id="joint-1-minus" class="step-action-btn">−</button>
+              <div class="slider-container">
+                <input id="joint-1-slider" type="range" class="joint-slider" min="-180" max="180" step="0.5" value="0">
+              </div>
+              <button id="joint-1-plus" class="step-action-btn">+</button>
+              <button id="joint-1-zero" class="joint-zero-btn">0°</button>
+            </div>
+          </div>
+
+          <!-- JOINT 2 -->
+          <div class="joint-card">
+            <div class="joint-card-header">
+              <div class="joint-info">
+                <span class="joint-badge">J2</span>
+                <div>
+                  <div class="joint-name">Shoulder Pitch</div>
+                  <div class="joint-axis">Elevation pitch (-120° to +120°)</div>
+                </div>
+              </div>
+              <div class="joint-readout">
+                <span id="joint-2-deg" class="deg-val">0.0°</span>
+                <span id="joint-2-rad" class="rad-val">0.00 rad</span>
+              </div>
+            </div>
+            <div class="joint-controls-row">
+              <button id="joint-2-minus" class="step-action-btn">−</button>
+              <div class="slider-container">
+                <input id="joint-2-slider" type="range" class="joint-slider" min="-120" max="120" step="0.5" value="0">
+              </div>
+              <button id="joint-2-plus" class="step-action-btn">+</button>
+              <button id="joint-2-zero" class="joint-zero-btn">0°</button>
+            </div>
+          </div>
+
+          <!-- JOINT 3 -->
+          <div class="joint-card">
+            <div class="joint-card-header">
+              <div class="joint-info">
+                <span class="joint-badge">J3</span>
+                <div>
+                  <div class="joint-name">Elbow Pitch</div>
+                  <div class="joint-axis">Forearm flex (-150° to +150°)</div>
+                </div>
+              </div>
+              <div class="joint-readout">
+                <span id="joint-3-deg" class="deg-val">0.0°</span>
+                <span id="joint-3-rad" class="rad-val">0.00 rad</span>
+              </div>
+            </div>
+            <div class="joint-controls-row">
+              <button id="joint-3-minus" class="step-action-btn">−</button>
+              <div class="slider-container">
+                <input id="joint-3-slider" type="range" class="joint-slider" min="-150" max="150" step="0.5" value="0">
+              </div>
+              <button id="joint-3-plus" class="step-action-btn">+</button>
+              <button id="joint-3-zero" class="joint-zero-btn">0°</button>
+            </div>
+          </div>
+
+          <!-- JOINT 4 -->
+          <div class="joint-card">
+            <div class="joint-card-header">
+              <div class="joint-info">
+                <span class="joint-badge">J4</span>
+                <div>
+                  <div class="joint-name">Wrist Roll</div>
+                  <div class="joint-axis">Forearm axial roll (-180° to +180°)</div>
+                </div>
+              </div>
+              <div class="joint-readout">
+                <span id="joint-4-deg" class="deg-val">0.0°</span>
+                <span id="joint-4-rad" class="rad-val">0.00 rad</span>
+              </div>
+            </div>
+            <div class="joint-controls-row">
+              <button id="joint-4-minus" class="step-action-btn">−</button>
+              <div class="slider-container">
+                <input id="joint-4-slider" type="range" class="joint-slider" min="-180" max="180" step="0.5" value="0">
+              </div>
+              <button id="joint-4-plus" class="step-action-btn">+</button>
+              <button id="joint-4-zero" class="joint-zero-btn">0°</button>
+            </div>
+          </div>
+
+          <!-- JOINT 5 -->
+          <div class="joint-card">
+            <div class="joint-card-header">
+              <div class="joint-info">
+                <span class="joint-badge">J5</span>
+                <div>
+                  <div class="joint-name">Wrist Pitch</div>
+                  <div class="joint-axis">Wrist bend pitch (-120° to +120°)</div>
+                </div>
+              </div>
+              <div class="joint-readout">
+                <span id="joint-5-deg" class="deg-val">0.0°</span>
+                <span id="joint-5-rad" class="rad-val">0.00 rad</span>
+              </div>
+            </div>
+            <div class="joint-controls-row">
+              <button id="joint-5-minus" class="step-action-btn">−</button>
+              <div class="slider-container">
+                <input id="joint-5-slider" type="range" class="joint-slider" min="-120" max="120" step="0.5" value="0">
+              </div>
+              <button id="joint-5-plus" class="step-action-btn">+</button>
+              <button id="joint-5-zero" class="joint-zero-btn">0°</button>
+            </div>
+          </div>
+
+          <!-- JOINT 6 -->
+          <div class="joint-card">
+            <div class="joint-card-header">
+              <div class="joint-info">
+                <span class="joint-badge">J6</span>
+                <div>
+                  <div class="joint-name">Tool Roll</div>
+                  <div class="joint-axis">Continuous flange roll (-360° to +360°)</div>
+                </div>
+              </div>
+              <div class="joint-readout">
+                <span id="joint-6-deg" class="deg-val">0.0°</span>
+                <span id="joint-6-rad" class="rad-val">0.00 rad</span>
+              </div>
+            </div>
+            <div class="joint-controls-row">
+              <button id="joint-6-minus" class="step-action-btn">−</button>
+              <div class="slider-container">
+                <input id="joint-6-slider" type="range" class="joint-slider" min="-360" max="360" step="1.0" value="0">
+              </div>
+              <button id="joint-6-plus" class="step-action-btn">+</button>
+              <button id="joint-6-zero" class="joint-zero-btn">0°</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- EXECUTION SPEED -->
+        <div class="speed-bar">
+          <span>Execution Trajectory Duration:</span>
+          <input id="speed-slider" type="range" min="0.2" max="3.0" step="0.1" value="0.5">
+          <span id="speed-value-label" style="color: var(--cyan); font-weight: bold; width: 35px;">0.5s</span>
+        </div>
+      </div>
+
+      <!-- TAB 2: MODERN HAND & GRIPPER -->
+      <div id="tab-hand" class="tab-content">
+        <div class="hand-container">
+          <!-- MASTER GRIP CARD -->
+          <div class="hand-master-card">
+            <div class="hand-badge">BIONIC DEXTEROUS END EFFECTOR</div>
+            <h3 style="color: #fff; font-size: 1.1rem; margin-bottom: 6px;">Master Grip Span Control</h3>
+            <p style="font-size: 0.78rem; color: var(--text-secondary);">
+              Controls the synchronous stroke of the multi-tendon hand and maps directly to the ROS 2 gripper controller.
+            </p>
+
+            <div class="grip-span-readout">
+              <div>
+                <span style="font-size: 0.75rem; color: var(--text-muted); display: block;">APERTURE SPAN</span>
+                <div id="hand-grip-mm" class="grip-val">35.0 <span>mm</span></div>
+              </div>
+              <div id="hand-grip-pct" style="color: var(--cyan); font-weight: bold; font-size: 0.95rem;">
+                100% OPEN
+              </div>
+            </div>
+
+            <div class="joint-controls-row">
+              <button id="hand-grip-minus" class="step-action-btn" title="Close Grip">−</button>
+              <div class="slider-container">
+                <input id="hand-grip-slider" type="range" class="joint-slider" min="0" max="35" step="0.5" value="35">
+              </div>
+              <button id="hand-grip-plus" class="step-action-btn" title="Open Grip">+</button>
+            </div>
+
+            <!-- QUICK GRIP PRESETS -->
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 14px;">
+              <button id="hand-btn-open" class="preset-btn" style="padding: 6px;">Full Open</button>
+              <button id="hand-btn-can" class="preset-btn" style="padding: 6px;">Cylinder</button>
+              <button id="hand-btn-pinch" class="preset-btn" style="padding: 6px;">Pinch</button>
+              <button id="hand-btn-close" class="preset-btn" style="padding: 6px;">Full Close</button>
+            </div>
+          </div>
+
+          <!-- GESTURE SELECTOR -->
+          <div class="hand-master-card">
+            <div class="hand-badge">INTELLIGENT GESTURE ENGINE</div>
+            <h4 style="color: #fff; font-size: 0.95rem; margin-bottom: 8px;">Autonomous Hand Gestures</h4>
+            <div class="hand-actions-grid">
+              <button id="gesture-open" class="gesture-btn active">
+                <span>🖐️</span> Open Palm
+              </button>
+              <button id="gesture-fist" class="gesture-btn">
+                <span>✊</span> Power Fist
+              </button>
+              <button id="gesture-pinch" class="gesture-btn">
+                <span>🤏</span> Precision Pinch
+              </button>
+              <button id="gesture-point" class="gesture-btn">
+                <span>👉</span> Index Point
+              </button>
+              <button id="gesture-peace" class="gesture-btn">
+                <span>✌️</span> Victory / Peace
+              </button>
+              <button id="gesture-thumbsup" class="gesture-btn">
+                <span>👍</span> Thumbs Up
+              </button>
+            </div>
+          </div>
+
+          <!-- INDIVIDUAL FINGER CONTROLS -->
+          <div class="fingers-card">
+            <div class="hand-badge">MULTI-AXIS TENDON CHANNELS</div>
+            <h4 style="color: #fff; font-size: 0.95rem; margin-bottom: 12px;">Individual Finger Articulation</h4>
+
+            <div class="finger-row">
+              <span class="finger-label">Thumb</span>
+              <input id="finger-thumb-slider" type="range" class="joint-slider finger-slider" min="0" max="100" value="0">
+              <span id="finger-thumb-val" class="finger-val">0%</span>
+            </div>
+
+            <div class="finger-row">
+              <span class="finger-label">Index</span>
+              <input id="finger-index-slider" type="range" class="joint-slider finger-slider" min="0" max="100" value="0">
+              <span id="finger-index-val" class="finger-val">0%</span>
+            </div>
+
+            <div class="finger-row">
+              <span class="finger-label">Middle</span>
+              <input id="finger-middle-slider" type="range" class="joint-slider finger-slider" min="0" max="100" value="0">
+              <span id="finger-middle-val" class="finger-val">0%</span>
+            </div>
+
+            <div class="finger-row">
+              <span class="finger-label">Ring</span>
+              <input id="finger-ring-slider" type="range" class="joint-slider finger-slider" min="0" max="100" value="0">
+              <span id="finger-ring-val" class="finger-val">0%</span>
+            </div>
+
+            <div class="finger-row">
+              <span class="finger-label">Pinky</span>
+              <input id="finger-pinky-slider" type="range" class="joint-slider finger-slider" min="0" max="100" value="0">
+              <span id="finger-pinky-val" class="finger-val">0%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: LIVE CAMERA & AI COMPUTER VISION -->
+      <div id="tab-camera" class="tab-content">
+        <div class="camera-panel-container">
+          <!-- STREAM SOURCE SELECTOR -->
+          <div class="stream-source-bar">
+            <button id="stream-btn-camera" class="stream-switch-btn active" data-stream="/stream/camera">
+              <span>📹</span> Live Eye Camera (/camera/image_raw)
+            </button>
+            <button id="stream-btn-vision" class="stream-switch-btn" data-stream="/stream/vision">
+              <span>🎯</span> AI Vision Detection (/vision/detection_image)
+            </button>
+          </div>
+
+          <!-- VIDEO FEED VIEWPORT -->
+          <div class="camera-feed-card" id="camera-feed-card">
+            <img id="main-camera-stream" src="/stream/camera" alt="Live Camera Optical Stream">
+            <div class="camera-stream-overlay">
+              <div class="stream-left-badges">
+                <span id="camera-live-badge" class="stream-badge live">● LIVE 30 FPS</span>
+                <span id="camera-topic-badge" class="stream-badge info">/camera/image_raw</span>
+              </div>
+              <div class="stream-actions">
+                <button id="btn-camera-snapshot" class="cam-action-btn" title="Save snapshot to disk">📸 Snapshot</button>
+                <button id="btn-camera-fullscreen" class="cam-action-btn" title="View Fullscreen">⛶ Fullscreen</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- OPTICAL TELEMETRY CARDS -->
+          <div class="camera-metrics-grid">
+            <div class="cam-metric-card">
+              <span class="label">Resolution</span>
+              <span class="val">640 &times; 480 px</span>
+            </div>
+            <div class="cam-metric-card">
+              <span class="label">Stream Rate</span>
+              <span class="val">30.0 Hz</span>
+            </div>
+            <div class="cam-metric-card">
+              <span class="label">Mount Frame</span>
+              <span class="val">camera_optical_frame</span>
+            </div>
+            <div class="cam-metric-card">
+              <span class="label">Latency</span>
+              <span id="camera-latency-val" class="val" style="color: var(--success);">&lt; 15 ms</span>
+            </div>
+          </div>
+
+          <!-- TARGET DETECTION CARD -->
+          <div class="detections-card">
+            <div class="detections-card-header">
+              <div style="font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px;">
+                <span>🎯</span> AI TARGET OBJECT TRACKING & 3D POSE
+              </div>
+              <span id="detections-count-badge" class="badge">0 Detected</span>
+            </div>
+            <div id="detections-list-container" class="detections-list">
+              <div class="no-detections-msg">Listening for target cubes/cylinders via OpenCV...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: MODERN HAND SHOWCASE & DESIGN SPECS -->
+      <div id="tab-showcase" class="tab-content">
+        <div class="showcase-container">
+          <div style="background: rgba(0, 229, 255, 0.08); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px;">
+            <span style="font-size: 0.72rem; color: var(--cyan); font-weight: 800; letter-spacing: 1px;">DESIGN UPGRADE ARCHITECTURE</span>
+            <h3 style="color: #fff; margin-top: 4px; font-size: 1.1rem;">Modern Cybernetic Dexterous Hand</h3>
+            <p style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 6px; line-height: 1.4;">
+              Converted the original claw manipulator into an ultra-modern 5-finger articulated bionic hand. Featuring aerospace-grade pearl composite casing, titanium knuckle linkages, and glowing cyan illumination matching the Auron kinematics.
+            </p>
+          </div>
+
+          <!-- GALLERY (CLICKABLE TO OPEN HIGH-RES LIGHTBOX) -->
+          <div class="showcase-gallery">
+            <div class="showcase-item" data-image="assets/modern_robotic_hand.jpg" data-title="Dexterous Bionic Hand" data-desc="Articulated 5-digit cybernetic manipulator featuring aerospace-grade pearl composite casing, titanium knuckle linkages, and glowing cyan illumination.">
+              <div class="showcase-image-wrap">
+                <img src="assets/modern_robotic_hand.jpg" alt="Modern Bionic Robotic Hand Close-Up">
+                <div class="showcase-zoom-hint">🔍 Click to View Full HD</div>
+              </div>
+              <div class="showcase-caption">
+                <h4>Dexterous Bionic Hand</h4>
+                <p>Articulated 5-digit hand with illuminated knuckle joints</p>
+              </div>
+            </div>
+
+            <div class="showcase-item" data-image="assets/modern_arm_hand.jpg" data-title="Full System Integration" data-desc="Complete 6-DOF Auron industrial articulated arm equipped with modern cybernetic end-effector.">
+              <div class="showcase-image-wrap">
+                <img src="assets/modern_arm_hand.jpg" alt="Auron 6-DOF Arm with Modern Hand Attached">
+                <div class="showcase-zoom-hint">🔍 Click to View Full HD</div>
+              </div>
+              <div class="showcase-caption">
+                <h4>Full System Integration</h4>
+                <p>6-DOF Auron Arm equipped with modern end-effector</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- HARDWARE & KINEMATIC SPECS -->
+          <div>
+            <h4 style="color: var(--cyan); font-size: 0.85rem; letter-spacing: 0.8px; margin-bottom: 8px;">TECHNICAL SPECIFICATIONS</h4>
+            <table class="specs-table">
+              <tbody>
+                <tr>
+                  <td>End-Effector Type</td>
+                  <td>5-Digit Multi-Phalanx Dexterous Hand</td>
+                </tr>
+                <tr>
+                  <td>Kinematics DOF</td>
+                  <td>6-DOF Arm + 5 Multi-Segment Fingers</td>
+                </tr>
+                <tr>
+                  <td>Actuation Mechanism</td>
+                  <td>High-Torque Coreless Servos & Dyneema Tendons</td>
+                </tr>
+                <tr>
+                  <td>Shell & Structure</td>
+                  <td>Aero-Carbon Composite & Brushed Titanium</td>
+                </tr>
+                <tr>
+                  <td>Grip Aperture Stroke</td>
+                  <td>0 mm (Full Grip) to 35 mm (Open)</td>
+                </tr>
+                <tr>
+                  <td>Maximum Grasp Payload</td>
+                  <td>5.0 kg dynamic / 7.5 kg static</td>
+                </tr>
+                <tr>
+                  <td>Tactile Feedback</td>
+                  <td>Capacitive & Optical Fingertip Array</td>
+                </tr>
+                <tr>
+                  <td>ROS 2 Interfaces</td>
+                  <td>/arm_controller & /gripper_controller</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: TELEMETRY & DIAGNOSTICS -->
+      <div id="tab-telemetry" class="tab-content">
+        <div class="card-title" style="font-size: 0.82rem; margin-bottom: 12px;">
+          <span>📊</span> Live Joint Position Telemetry
+        </div>
+
+        <table class="telemetry-table">
+          <thead>
+            <tr>
+              <th>Joint</th>
+              <th>Target</th>
+              <th>Actual</th>
+              <th>Tracking Error</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="color: #fff;">J1 (Base Pan)</td>
+              <td id="telem-j1-tgt">0.0°</td>
+              <td id="telem-j1-act">0.0°</td>
+              <td id="telem-j1-err">0.0°</td>
+            </tr>
+            <tr>
+              <td style="color: #fff;">J2 (Shoulder)</td>
+              <td id="telem-j2-tgt">0.0°</td>
+              <td id="telem-j2-act">0.0°</td>
+              <td id="telem-j2-err">0.0°</td>
+            </tr>
+            <tr>
+              <td style="color: #fff;">J3 (Elbow)</td>
+              <td id="telem-j3-tgt">0.0°</td>
+              <td id="telem-j3-act">0.0°</td>
+              <td id="telem-j3-err">0.0°</td>
+            </tr>
+            <tr>
+              <td style="color: #fff;">J4 (Wrist Roll)</td>
+              <td id="telem-j4-tgt">0.0°</td>
+              <td id="telem-j4-act">0.0°</td>
+              <td id="telem-j4-err">0.0°</td>
+            </tr>
+            <tr>
+              <td style="color: #fff;">J5 (Wrist Pitch)</td>
+              <td id="telem-j5-tgt">0.0°</td>
+              <td id="telem-j5-act">0.0°</td>
+              <td id="telem-j5-err">0.0°</td>
+            </tr>
+            <tr>
+              <td style="color: #fff;">J6 (Tool Roll)</td>
+              <td id="telem-j6-tgt">0.0°</td>
+              <td id="telem-j6-act">0.0°</td>
+              <td id="telem-j6-err">0.0°</td>
+            </tr>
+            <tr style="background: rgba(0, 229, 255, 0.05);">
+              <td style="color: var(--cyan);">Hand Grip</td>
+              <td id="telem-grip-tgt">35.0 mm</td>
+              <td id="telem-grip-act">35.0 mm</td>
+              <td id="telem-grip-err">0.0 mm</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="ros-status-box">
+          <div style="font-weight: 700; color: #fff; margin-bottom: 8px;">ROS 2 NODE & BUS DIAGNOSTICS</div>
+          <div class="ros-status-line">
+            <span>WebSocket Gateway:</span>
+            <span class="val">ws://localhost:9090</span>
+          </div>
+          <div class="ros-status-line">
+            <span>Trajectory Publisher:</span>
+            <span class="val">/arm_controller/joint_trajectory</span>
+          </div>
+          <div class="ros-status-line">
+            <span>Gripper Publisher:</span>
+            <span class="val">/gripper_controller/joint_trajectory</span>
+          </div>
+          <div class="ros-status-line">
+            <span>Feedback Subscriber:</span>
+            <span class="val">/joint_states [50 Hz]</span>
+          </div>
+          <div class="ros-status-line">
+            <span>Control Mode:</span>
+            <span class="val" style="color: var(--success);">ROS 2 Control Active</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- HIGH-RES IMAGE LIGHTBOX MODAL -->
+  <div id="image-lightbox-modal" class="lightbox-modal">
+    <div class="lightbox-backdrop" id="lightbox-backdrop"></div>
+    <div class="lightbox-dialog">
+      <div class="lightbox-header">
+        <div class="lightbox-title-area">
+          <span class="badge" style="background: rgba(0, 229, 255, 0.2); color: var(--cyan);">DESIGN ARCHIVE</span>
+          <h3 id="lightbox-title">Design Preview</h3>
+        </div>
+        <button class="lightbox-close" id="lightbox-close-btn" title="Close Viewer (Esc)">&times;</button>
+      </div>
+      <div class="lightbox-body" id="lightbox-body">
+        <img id="lightbox-img" src="" alt="High-Resolution Design Image">
+      </div>
+      <div class="lightbox-footer">
+        <p id="lightbox-desc">Detailed design description</p>
+        <div class="lightbox-tools">
+          <button id="lightbox-zoom-in" class="tool-btn" title="Zoom In">🔍 Zoom In</button>
+          <button id="lightbox-zoom-out" class="tool-btn" title="Zoom Out">🔍 Zoom Out</button>
+          <button id="lightbox-zoom-reset" class="tool-btn" title="Reset Zoom">↺ 100%</button>
+          <a id="lightbox-download-btn" href="" download class="tool-btn" style="text-decoration:none; color: var(--cyan);">💾 Download HD</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- JAVASCRIPT LIBS -->
+  <script src="js/libs/roslib.min.js"></script>
+  <script src="js/libs/three.min.js"></script>
+  <script src="js/libs/OrbitControls.js"></script>
+
+  <!-- APPLICATION MODULES -->
+  <script src="js/ros_connection.js"></script>
+  <script src="js/robot_3d_view.js"></script>
+  <script src="js/arm_controls.js"></script>
+  <script src="js/hand_controls.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- Mathematical constants -->
+  <xacro:property name="PI" value="3.1415926535897931"/>
+
+  <!-- Joint limits (user specification & physical consistency) -->
+  <!-- J1: Base rotation (-180 to +180 deg) -->
+  <xacro:property name="j1_lower" value="-3.14159"/>
+  <xacro:property name="j1_upper" value="3.14159"/>
+  <xacro:property name="j1_velocity" value="2.0"/>
+  <xacro:property name="j1_effort" value="180.0"/>
+
+  <!-- J2: Shoulder (-120 to +120 deg) -->
+  <xacro:property name="j2_lower" value="-2.0944"/>
+  <xacro:property name="j2_upper" value="2.0944"/>
+  <xacro:property name="j2_velocity" value="2.0"/>
+  <xacro:property name="j2_effort" value="180.0"/>
+
+  <!-- J3: Elbow (-150 to +150 deg) -->
+  <xacro:property name="j3_lower" value="-2.61799"/>
+  <xacro:property name="j3_upper" value="2.61799"/>
+  <xacro:property name="j3_velocity" value="2.5"/>
+  <xacro:property name="j3_effort" value="120.0"/>
+
+  <!-- J4: Wrist rotation (-180 to +180 deg) -->
+  <xacro:property name="j4_lower" value="-3.14159"/>
+  <xacro:property name="j4_upper" value="3.14159"/>
+  <xacro:property name="j4_velocity" value="3.0"/>
+  <xacro:property name="j4_effort" value="60.0"/>
+
+  <!-- J5: Wrist pitch (-120 to +120 deg) -->
+  <xacro:property name="j5_lower" value="-2.0944"/>
+  <xacro:property name="j5_upper" value="2.0944"/>
+  <xacro:property name="j5_velocity" value="3.0"/>
+  <xacro:property name="j5_effort" value="40.0"/>
+
+  <!-- J6: Wrist/tool rotation (-360 to +360 deg) -->
+  <xacro:property name="j6_lower" value="-6.28318"/>
+  <xacro:property name="j6_upper" value="6.28318"/>
+  <xacro:property name="j6_velocity" value="3.5"/>
+  <xacro:property name="j6_effort" value="30.0"/>
+
+  <!-- Gripper finger limits (0.0 to 0.04m stroke) -->
+  <xacro:property name="gripper_lower" value="0.0"/>
+  <xacro:property name="gripper_upper" value="0.035"/>
+  <xacro:property name="gripper_velocity" value="0.1"/>
+  <xacro:property name="gripper_effort" value="40.0"/>
+
+  <!-- Dynamics properties for oscillation damping in Gazebo Harmonic -->
+  <xacro:property name="arm_damping" value="2.0"/>
+  <xacro:property name="arm_friction" value="1.0"/>
+  <xacro:property name="wrist_damping" value="0.5"/>
+  <xacro:property name="wrist_friction" value="0.2"/>
+  <xacro:property name="gripper_damping" value="0.1"/>
+  <xacro:property name="gripper_friction" value="0.1"/>
+
+  <!-- Standard geometric inertia macros -->
+  <xacro:macro name="cylinder_inertia" params="m r h">
+    <inertial>
+      <mass value="${m}"/>
+      <inertia ixx="${(m/12.0) * (3*r*r + h*h)}" ixy="0.0" ixz="0.0"
+               iyy="${(m/12.0) * (3*r*r + h*h)}" iyz="0.0"
+               izz="${(m/2.0) * (r*r)}"/>
+    </inertial>
+  </xacro:macro>
+
+  <xacro:macro name="box_inertia" params="m x y z">
+    <inertial>
+      <mass value="${m}"/>
+      <inertia ixx="${(m/12.0) * (y*y + z*z)}" ixy="0.0" ixz="0.0"
+               iyy="${(m/12.0) * (x*x + z*z)}" iyz="0.0"
+               izz="${(m/12.0) * (x*x + y*y)}"/>
+    </inertial>
+  </xacro:macro>
+
+  <xacro:macro name="sphere_inertia" params="m r">
+    <inertial>
+      <mass value="${m}"/>
+      <inertia ixx="${(2.0/5.0) * m * r * r}" ixy="0.0" ixz="0.0"
+               iyy="${(2.0/5.0) * m * r * r}" iyz="0.0"
+               izz="${(2.0/5.0) * m * r * r}"/>
+    </inertial>
+  </xacro:macro>
+
+</robot>

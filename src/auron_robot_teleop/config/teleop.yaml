@@ -1,0 +1,31 @@
+teleop_keyboard:
+  ros__parameters:
+    step_size_deg: 2.0 # degrees per key press
+    gripper_step: 0.005 # meters per key press
+    trajectory_duration: 0.25 # seconds for trajectory interpolation
+    publish_rate: 20.0 # Hz
+    joint_names:
+      - joint_1
+      - joint_2
+      - joint_3
+      - joint_4
+      - joint_5
+      - joint_6
+    gripper_joint_names:
+      - left_finger_joint
+      - right_finger_joint
+    # Joint limits in radians
+    joint_1_min: -3.14159
+    joint_1_max: 3.14159
+    joint_2_min: -2.0944
+    joint_2_max: 2.0944
+    joint_3_min: -2.61799
+    joint_3_max: 2.61799
+    joint_4_min: -3.14159
+    joint_4_max: 3.14159
+    joint_5_min: -2.0944
+    joint_5_max: 2.0944
+    joint_6_min: -6.28318
+    joint_6_max: 6.28318
+    gripper_min: 0.0
+    gripper_max: 0.035

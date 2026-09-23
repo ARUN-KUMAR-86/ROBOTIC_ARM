@@ -1,0 +1,127 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- ========================================== -->
+  <!-- ROS 2 CONTROL HARDWARE INTERFACE           -->
+  <!-- ========================================== -->
+  <ros2_control name="AuronRobotControl" type="system">
+    <hardware>
+      <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+    </hardware>
+
+    <!-- Joint 1: Base rotation -->
+    <joint name="joint_1">
+      <command_interface name="position">
+        <param name="min">${j1_lower}</param>
+        <param name="max">${j1_upper}</param>
+      </command_interface>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+
+    <!-- Joint 2: Shoulder -->
+    <joint name="joint_2">
+      <command_interface name="position">
+        <param name="min">${j2_lower}</param>
+        <param name="max">${j2_upper}</param>
+      </command_interface>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+
+    <!-- Joint 3: Elbow -->
+    <joint name="joint_3">
+      <command_interface name="position">
+        <param name="min">${j3_lower}</param>
+        <param name="max">${j3_upper}</param>
+      </command_interface>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+
+    <!-- Joint 4: Wrist roll -->
+    <joint name="joint_4">
+      <command_interface name="position">
+        <param name="min">${j4_lower}</param>
+        <param name="max">${j4_upper}</param>
+      </command_interface>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+
+    <!-- Joint 5: Wrist pitch -->
+    <joint name="joint_5">
+      <command_interface name="position">
+        <param name="min">${j5_lower}</param>
+        <param name="max">${j5_upper}</param>
+      </command_interface>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+
+    <!-- Joint 6: Wrist tool roll -->
+    <joint name="joint_6">
+      <command_interface name="position">
+        <param name="min">${j6_lower}</param>
+        <param name="max">${j6_upper}</param>
+      </command_interface>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+
+    <!-- Left Gripper Finger -->
+    <joint name="left_finger_joint">
+      <command_interface name="position">
+        <param name="min">${gripper_lower}</param>
+        <param name="max">${gripper_upper}</param>
+      </command_interface>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+
+    <!-- Right Gripper Finger -->
+    <joint name="right_finger_joint">
+      <command_interface name="position">
+        <param name="min">${gripper_lower}</param>
+        <param name="max">${gripper_upper}</param>
+      </command_interface>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+
+  </ros2_control>
+
+  <!-- ========================================== -->
+  <!-- GAZEBO ROS 2 CONTROL PLUGIN                -->
+  <!-- ========================================== -->
+  <gazebo>
+    <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+      <parameters>$(find auron_robot_control)/config/controllers.yaml</parameters>
+    </plugin>
+  </gazebo>
+
+</robot>
