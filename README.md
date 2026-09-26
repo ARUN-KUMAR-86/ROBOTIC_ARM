@@ -3,6 +3,7 @@
 An industrial-grade 6-DOF articulated robotic arm simulation platform built for **Ubuntu 24.04 LTS**, **ROS 2 Jazzy Jalisco**, **Gazebo Harmonic (gz-sim 8.11)**, and **MoveIt 2**.
 
 Visual design synthesized from reference specifications: **blue and white industrial finish, circular gear housings, cyan turbine faceplates, articulated 2-finger gripper, and compact 6-axis kinematics**.
+youtube : https://youtu.be/5uxzrSsDjGk**.
 
 ---
 
